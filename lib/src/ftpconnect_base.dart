@@ -233,8 +233,11 @@ class FTPConnect {
   /// Download the Remote Directory [pRemoteDir] to the local File [pLocalDir]
   /// [pRetryCount] number of attempts
   Future<bool> downloadDirectory(
-      String pRemoteDir, Directory pLocalDir, ListCommand command,
-      {int pRetryCount = 1}) {
+    String pRemoteDir,
+    Directory pLocalDir,
+    ListCommand command, {
+    int pRetryCount = 1,
+  }) {
     Future<bool> downloadDir(String? pRemoteDir, Directory pLocalDir) async {
       await pLocalDir.create(recursive: true);
 
