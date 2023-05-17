@@ -45,12 +45,12 @@ class FTPDirectory {
     return sResponse.message.substring(iStart, iEnd);
   }
 
-  Future<List<FTPEntry>> directoryContent() async {
+  Future<List<FTPEntry>> directoryContent(ListCommand command) async {
     // Enter passive mode
     FTPReply response = await _socket.openDataTransferChannel();
 
     // Directoy content listing, the response will be handled by another socket
-    _socket.sendCommandWithoutWaitingResponse(_socket.listCommand.describeEnum);
+    _socket.sendCommandWithoutWaitingResponse(command.describeEnum);
 
     // Data transfer socket
     int iPort = Utils.parsePort(response.message, _socket.supportIPV6);
@@ -91,8 +91,8 @@ class FTPDirectory {
     return lstFTPEntries;
   }
 
-  Future<List<String>> directoryContentNames() async {
-    var list = await directoryContent();
+  Future<List<String>> directoryContentNames(ListCommand command) async {
+    var list = await directoryContent(command);
     return list.map((f) => f.name).whereType<String>().toList();
   }
 }

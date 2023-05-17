@@ -66,10 +66,10 @@ void main() async {
     _ftpConnectNoLog.listCommand = ListCommand.LIST;
     _ftpConnectNoLog.supportIPV6 = false;
     await _ftpConnectNoLog.setTransferType(TransferType.binary);
-    await _ftpConnectNoLog.listDirectoryContent();
+    await _ftpConnectNoLog.listDirectoryContent(_ftpConnectNoLog.listCommand);
     await _ftpConnectNoLog.setTransferType(TransferType.ascii);
     _ftpConnectNoLog.transferMode = TransferMode.passive;
-    await _ftpConnectNoLog.listDirectoryContent();
+    await _ftpConnectNoLog.listDirectoryContent(_ftpConnectNoLog.listCommand);
 
     expect(await _ftpConnectNoLog.disconnect(), equals(true));
   });
@@ -121,7 +121,7 @@ void main() async {
     //try delete a non epty dir => crash because permission denied
     try {
       _ftpConnect.listCommand = ListCommand.LIST;
-      await _ftpConnect.deleteDirectory("../upload");
+      await _ftpConnect.deleteDirectory("../upload", _ftpConnect.listCommand);
     } catch (e) {
       expect(e is FTPConnectException, equals(true));
     }
@@ -145,17 +145,19 @@ void main() async {
     bool res = await _ftpConnect.downloadDirectory(
       dirName,
       Directory(_testFileDir)..createSync(),
+      _ftpConnect.listCommand,
     );
     expect(res, equals(true));
 
     //change directory to root
     expect(await _ftpConnect.changeDirectory('/'), equals(true));
-    await _ftpConnect.deleteDirectory(dirName);
+    await _ftpConnect.deleteDirectory(dirName, _ftpConnect.listCommand);
 
     try {
       await _ftpConnect.downloadDirectory(
         '/nonExist',
         Directory(_testFileDir)..createSync(),
+        _ftpConnect.listCommand,
       );
     } catch (e) {
       expect(e is FTPConnectException, equals(true));

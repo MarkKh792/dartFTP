@@ -47,6 +47,8 @@ class FTPConnect {
 
   set supportIPV6(bool pSupportIPV6) => _socket.supportIPV6 = pSupportIPV6;
 
+  ListCommand get listCommand => _socket.listCommand;
+
   /// Set current transfer type of connection
   ///
   /// Supported types are: [TransferType.auto], [TransferType.ascii], [TransferType.binary],
@@ -109,19 +111,19 @@ class FTPConnect {
   /// Returns `true` if the directory was deleted successfully
   /// Returns `false` if the directory could not be deleted or does not nexist
   /// THIS USEFUL TO DELETE NON EMPTY DIRECTORY
-  Future<bool> deleteDirectory(String sDirectory) async {
+  Future<bool> deleteDirectory(String sDirectory, ListCommand command) async {
     String currentDir = await this.currentDirectory();
     if (!await this.changeDirectory(sDirectory)) {
       throw FTPConnectException("Couldn't change directory to $sDirectory");
     }
-    List<FTPEntry> dirContent = await this.listDirectoryContent();
+    List<FTPEntry> dirContent = await this.listDirectoryContent(command);
     await Future.forEach(dirContent, (FTPEntry entry) async {
       if (entry.type == FTPEntryType.FILE) {
         if (!await deleteFile(entry.name)) {
           throw FTPConnectException("Couldn't delete file ${entry.name}");
         }
       } else {
-        if (!await deleteDirectory(entry.name)) {
+        if (!await deleteDirectory(entry.name, command)) {
           throw FTPConnectException("Couldn't delete folder ${entry.name}");
         }
       }
@@ -147,15 +149,15 @@ class FTPConnect {
   /// Returns the content of the current directory
   /// [cmd] refer to the used command for the server, there is servers working
   /// with MLSD and other with LIST
-  Future<List<FTPEntry>> listDirectoryContent() {
-    return FTPDirectory(_socket).directoryContent();
+  Future<List<FTPEntry>> listDirectoryContent(ListCommand command) {
+    return FTPDirectory(_socket).directoryContent(command);
   }
 
   /// Returns the content names of the current directory
   /// [cmd] refer to the used command for the server, there is servers working
   /// with MLSD and other with LIST for detailed content
-  Future<List<String>> listDirectoryContentOnlyNames() {
-    return FTPDirectory(_socket).directoryContentNames();
+  Future<List<String>> listDirectoryContentOnlyNames(ListCommand command) {
+    return FTPDirectory(_socket).directoryContentNames(command);
   }
 
   /// Rename a file (or directory) from [sOldName] to [sNewName]
@@ -230,7 +232,8 @@ class FTPConnect {
 
   /// Download the Remote Directory [pRemoteDir] to the local File [pLocalDir]
   /// [pRetryCount] number of attempts
-  Future<bool> downloadDirectory(String pRemoteDir, Directory pLocalDir,
+  Future<bool> downloadDirectory(
+      String pRemoteDir, Directory pLocalDir, ListCommand command,
       {int pRetryCount = 1}) {
     Future<bool> downloadDir(String? pRemoteDir, Directory pLocalDir) async {
       await pLocalDir.create(recursive: true);
@@ -240,7 +243,7 @@ class FTPConnect {
         throw FTPConnectException('Cannot download directory',
             '$pRemoteDir not found or inaccessible !');
       }
-      List<FTPEntry> dirContent = await this.listDirectoryContent();
+      List<FTPEntry> dirContent = await this.listDirectoryContent(command);
       await Future.forEach(dirContent, (FTPEntry entry) async {
         if (entry.type == FTPEntryType.FILE) {
           File localFile = File(join(pLocalDir.path, entry.name));
