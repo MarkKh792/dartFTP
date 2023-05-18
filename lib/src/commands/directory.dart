@@ -78,12 +78,12 @@ class FTPDirectory {
       }
     }
 
-    // Convert MLSD response into FTPEntry
+    // Convert [command] response into FTPEntry
     List<FTPEntry> lstFTPEntries = <FTPEntry>[];
     String.fromCharCodes(lstDirectoryListing).split('\n').forEach((line) {
       if (line.trim().isNotEmpty) {
         lstFTPEntries.add(
-          FTPEntry.parse(line.replaceAll('\r', ""), _socket.listCommand),
+          FTPEntry.parse(line.replaceAll('\r', ""), command),
         );
       }
     });
